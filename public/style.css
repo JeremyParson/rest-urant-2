@@ -1,0 +1,15 @@
+* {
+    /* remove default margin value from everything */
+    margin: 0%;
+}
+
+body {
+    /* set site background color */
+    background-color: burlywood;
+}
+
+/* style the header on every page */
+.title-header {
+    background-color: peru;
+    width: 100%;
+}
