@@ -5,7 +5,7 @@ function DefaultLayout(props) {
         <html>
             <head>
                 <title>Bread Crud</title>
-                <link rel="stylesheet" href="/style.css"></link>
+                <link rel="stylesheet" href="/static/style.css"></link>
             </head>
             <body>
                 <h2 className='title-header'>BreadCRUD</h2>

@@ -1,43 +1,79 @@
 // setup express
 const express = require('express');
-const bread = require('../models/bread.js');
 const router = express.Router()
+const breadSeedData = require('../seeds/bread')
 // contains data about our bread
-const breads = require('../models/bread.js')
+const Breads = require('../models/bread.js')
+const Baker = require('../models/baker')
+
+router.get('/data/seed', async (req, res) => {
+    await Breads.insertMany(breadSeedData)
+    .then(res.redirect('/breads'))
+})
 
 // send list of all bread
-router.get('/', (req, res) => {
-    res.render('index', breads)
+router.get('/', async (req, res) => {
+    var all_breads = await Breads.find()
+    var bakers = await Baker.find()
+    res.render('index', {breads: all_breads, bakers})
 })
 
 // send bread creation form
-router.get('/new', (req, res) => {
-    res.render('newBread')
+router.get('/new', async (req, res) => {
+    var bakers = await Baker.find()
+    res.render('newBread', {bakers}) 
 })
 
 // handle new bread POST
-router.post('/new', (req, res) => {
-    const bread_name = req.body.breadName
-    const bread_image = req.body.breadImage
-    const gluten_free = req.body.glutenFree
-    let new_bread = {
-        name: bread_name,
-        image: bread_image,
-        gluten_free: gluten_free
+router.post('/new', async (req, res) => {
+    try {
+        req.body.hasGluten = req.body.hasGluten == 'on'
+        await Breads.create(req.body)
+        res.status(201).redirect('/breads')
+    } catch (err) {
+        console.log(err)
     }
-    breads.bread.push (new_bread)
-    res.status(201).render('index', breads)
 })
 
 // return information a single loaf of bread
-router.get('/:id', (req, res) => {
-    const id = req.params.id;        
-    const selectedBread = breads.bread[id]
-    res.render('breadDetail', {bread: selectedBread})
+router.get('/:id', async (req, res) => {
+    try {
+        var bread = await Breads.findOne({_id: req.params.id}).populate('baker')
+        res.render('breadDetail', {bread})
+    } catch (err) {
+        console.log(err)
+    }
 })
 
-router.get('/:id/edit', (req, res) => {
+router.delete('/:id', async (req, res) => {
+    try {
+        await Breads.deleteOne({_id: req.params.id})
+        res.status(303).redirect('/breads')
+    } catch (err) {
+        console.log(err)
+    }
+})
 
+// sends a bread editing form to client
+router.get('/:id/edit', async (req, res) => {
+    try {
+        var bread = await Breads.findOne({_id: req.params.id})
+        var bakers = await Baker.find()
+        res.render('edit', {bread, bakers})
+    } catch (err) {
+        console.log(err)
+    }
+})
+
+// changes bread data in database
+router.post('/:id/edit', async (req, res) => {
+    try {
+        req.body.hasGluten = req.body.hasGluten == 'on'
+        await Breads.updateOne({_id: req.params.id}, req.body)
+        res.status(303).redirect(`/breads/${req.params.id}`)
+    } catch (err) {
+        console.log(err)
+    }
 })
 
 module.exports = router;
